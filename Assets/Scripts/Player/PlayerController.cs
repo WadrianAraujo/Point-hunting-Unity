@@ -121,11 +121,13 @@ namespace Player
         {
             // left & right rotation
             Vector3 inputRotation = new Vector3(0, Input.GetAxis("Horizontal"), 0);
-
+            
+            Vector3 inputDirection = new Vector3(inputX, 0, inputY);
+            
             // forward & backward direction
-            Vector3 direction = transform.TransformDirection(Vector3.forward);
+            Vector3 direction = transform.TransformDirection(inputDirection);
             float forwardInput = Input.GetAxis("Vertical");
-            Vector3 inputPosition = direction * forwardInput;
+            Vector3 inputPosition = direction;
 
             // change animation states
             if (forwardInput == 0)
@@ -141,19 +143,18 @@ namespace Player
                 UpdatePlayerStateServerRpc(PlayerState.ReverseWalk);
 
             // let server know about position and rotation client changes
-            if (oldInputPosition != inputPosition ||
-                oldInputRotation != inputRotation)
+            if (oldInputPosition != inputPosition)
             {
                 oldInputPosition = inputPosition;
-                UpdateClientPositionAndRotationServerRpc(inputPosition * walkSpeed, inputRotation * rotationSpeed);
+                UpdateClientPositionAndRotationServerRpc(inputPosition * walkSpeed);
             }
         }
 
         [ServerRpc]
-        public void UpdateClientPositionAndRotationServerRpc(Vector3 newPosition, Vector3 newRotation)
+        public void UpdateClientPositionAndRotationServerRpc(Vector3 newPosition)
         {
             networkPositionDirection.Value = newPosition;
-            networkRotationDirection.Value = newRotation;
+            //networkRotationDirection.Value = newRotation;
         }
 
         [ServerRpc]
