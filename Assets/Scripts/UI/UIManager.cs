@@ -4,9 +4,10 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 using Network;
+using Utils;
 namespace UI
 {
-    public class UIManager : MonoBehaviour
+    public class UIManager : Singleton<UIManager>
     {
         [SerializeField] private Button startServerButton;
         [SerializeField] private Button startHostButton;
@@ -15,7 +16,7 @@ namespace UI
 
         private void Update()
         {
-            PlayerManager.Instance.ListPlayers();
+            playersIngameText.text = $"Players in game: {PlayerManager.Instance.PlayersInGame}";
         }
 
         private void Start()

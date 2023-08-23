@@ -1,23 +1,12 @@
 using UnityEngine;
 using Unity.Netcode;
 using Network;
-
+using Utils;
 namespace Player
 {
     [RequireComponent(typeof(NetworkObject))]
-    public class PlayerController : NetworkBehaviour
+    public class PlayerControl : NetworkBehaviour
     {
-        public enum PlayerState
-        {
-            Idle,
-            Walk,
-            Run,
-            ReverseWalk,
-        }
-        
-        [SerializeField] private float speedPlayer;
-        [SerializeField] private Vector2 spawnPositionRange = new Vector2(-4,4);
-        
         [SerializeField]
         private float walkSpeed = 3.5f;
 
@@ -26,7 +15,10 @@ namespace Player
 
         [SerializeField]
         private float rotationSpeed = 3.5f;
-        
+
+        [SerializeField]
+        private Vector2 defaultInitialPositionOnPlane = new Vector2(-4, 4);
+
         [SerializeField]
         private NetworkVariable<Vector3> networkPositionDirection = new NetworkVariable<Vector3>();
 
@@ -35,34 +27,30 @@ namespace Player
 
         [SerializeField]
         private NetworkVariable<PlayerState> networkPlayerState = new NetworkVariable<PlayerState>();
-        
-        // client caching
-        private Vector3 oldInputPosition;
-        private Vector3 oldInputRotation;
-        
-        private float inputX;
-        private float inputY;
 
         private CharacterController characterController;
+
+        // client caches positions
+        private Vector3 oldInputPosition = Vector3.zero;
+        private Vector3 oldInputRotation = Vector3.zero;
+        private PlayerState oldPlayerState = PlayerState.Idle;
+
         private Animator animator;
 
-        private int inputXHash = Animator.StringToHash("inputX");
-        private int inputYHash = Animator.StringToHash("inputY");
-        private PlayerState oldPlayerState = PlayerState.Idle;
-        
-        private void Start()
-        {
-            if (IsClient && IsOwner)
-            {
-                SpawnPlayerInGame();
-                PlayerManager.Instance.AddPlayer(GetComponent<NetworkObject>());
-            }
-        }
-        
-        void Awake()
+        private void Awake()
         {
             characterController = GetComponent<CharacterController>();
             animator = GetComponent<Animator>();
+        }
+
+        void Start()
+        {
+            if (IsClient && IsOwner)
+            {
+                transform.position = new Vector3(Random.Range(defaultInitialPositionOnPlane.x, defaultInitialPositionOnPlane.y), 0,
+                       Random.Range(defaultInitialPositionOnPlane.x, defaultInitialPositionOnPlane.y));
+                PlayerCamera.Instance.FollowPlayer(transform.Find("LookAt"));
+            }
         }
 
         void Update()
@@ -71,26 +59,11 @@ namespace Player
             {
                 ClientInput();
             }
-            
+
             ClientMoveAndRotate();
             ClientVisuals();
-            
-            inputX = Input.GetAxis("Horizontal");
-            inputY = Input.GetAxis("Vertical");
-            
-            animator.SetFloat(inputXHash, inputX);
-            animator.SetFloat(inputYHash, inputY);
+        }
 
-            //characterController.Move(transform.TransformDirection(movePlayer).normalized * Time.deltaTime * speedPlayer);
-            //characterController.Move(Vector3.down * Time.deltaTime);
-        }
-        
-        private void SpawnPlayerInGame()
-        {
-            transform.position = new Vector3(Random.Range(spawnPositionRange.x, spawnPositionRange.y), 0,
-                Random.Range(spawnPositionRange.x, spawnPositionRange.y) );
-        }
-        
         private void ClientMoveAndRotate()
         {
             if (networkPositionDirection.Value != Vector3.zero)
@@ -111,23 +84,16 @@ namespace Player
                 animator.SetTrigger($"{networkPlayerState.Value}");
             }
         }
-        
-        private static bool ActiveRunningActionKey()
-        {
-            return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-        }
 
         private void ClientInput()
         {
             // left & right rotation
             Vector3 inputRotation = new Vector3(0, Input.GetAxis("Horizontal"), 0);
-            
-            Vector3 inputDirection = new Vector3(inputX, 0, inputY);
-            
+
             // forward & backward direction
-            Vector3 direction = transform.TransformDirection(inputDirection);
+            Vector3 direction = transform.TransformDirection(Vector3.forward);
             float forwardInput = Input.GetAxis("Vertical");
-            Vector3 inputPosition = direction;
+            Vector3 inputPosition = direction * forwardInput;
 
             // change animation states
             if (forwardInput == 0)
@@ -143,18 +109,24 @@ namespace Player
                 UpdatePlayerStateServerRpc(PlayerState.ReverseWalk);
 
             // let server know about position and rotation client changes
-            if (oldInputPosition != inputPosition)
+            if (oldInputPosition != inputPosition ||
+                oldInputRotation != inputRotation)
             {
                 oldInputPosition = inputPosition;
-                UpdateClientPositionAndRotationServerRpc(inputPosition * walkSpeed);
+                UpdateClientPositionAndRotationServerRpc(inputPosition * walkSpeed, inputRotation * rotationSpeed);
             }
         }
 
+        private static bool ActiveRunningActionKey()
+        {
+            return Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+        }
+
         [ServerRpc]
-        public void UpdateClientPositionAndRotationServerRpc(Vector3 newPosition)
+        public void UpdateClientPositionAndRotationServerRpc(Vector3 newPosition, Vector3 newRotation)
         {
             networkPositionDirection.Value = newPosition;
-            //networkRotationDirection.Value = newRotation;
+            networkRotationDirection.Value = newRotation;
         }
 
         [ServerRpc]
@@ -162,7 +134,8 @@ namespace Player
         {
             networkPlayerState.Value = state;
         }
-    }
+    } 
 }
+
 
 

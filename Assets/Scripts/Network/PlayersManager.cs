@@ -1,40 +1,35 @@
 using System.Collections.Generic;
+using DilmerGames.Core.Singletons;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Network
 {
-    public class PlayerManager : NetworkBehaviour
+    public class PlayerManager : NetworkSingleton<PlayerManager>
     {
-        public static PlayerManager Instance;
+        NetworkVariable<int> playersInGame = new NetworkVariable<int>();
 
-        private List<NetworkObject> players = new List<NetworkObject>();
-
-        private void Awake()
+        public int PlayersInGame
         {
-            if (Instance == null)
-                Instance = this;
-            else
-                Destroy(this);
-        }
-
-        public void AddPlayer(NetworkObject player)
-        {
-            players.Add(player);
-        }
-
-        public void RemovePlayer(NetworkObject player)
-        {
-            players.Remove(player);
-        }
-
-        public void ListPlayers()
-        {
-            Debug.Log("Players in the host:");
-            foreach (var player in players)
+            get
             {
-                Debug.Log(player.OwnerClientId); 
+                return playersInGame.Value;
             }
+        }
+
+        void Start()
+        {
+            NetworkManager.Singleton.OnClientConnectedCallback += (id) =>
+            {
+                if(IsServer)
+                    playersInGame.Value++;
+            };
+
+            NetworkManager.Singleton.OnClientDisconnectCallback += (id) =>
+            {
+                if(IsServer)
+                    playersInGame.Value--;
+            };
         }
     }
 }
