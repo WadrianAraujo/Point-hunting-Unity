@@ -1,16 +1,42 @@
+using System;
 using UnityEngine;
 using Cinemachine;
+using Unity.Netcode;
 
-namespace Game.Player
+namespace Player
 {
-    public class PlayerCamera : MonoBehaviour
+    
+    public class PlayerCamera : NetworkBehaviour
     {
         [SerializeField] private AxisState xAxis;
         [SerializeField] private AxisState yAxis;
         
         [SerializeField] private Transform lookAt;
+        
+        private Camera m_mainCamera;
+        private CinemachineVirtualCamera m_virtualCam;
 
-        // Update is called once per frame
+        private void Awake()
+        {
+            m_mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+            m_virtualCam = m_mainCamera.GetComponent<CinemachineBrain>().ActiveVirtualCamera.VirtualCameraGameObject.GetComponent<CinemachineVirtualCamera>();
+        }
+        
+        public override void OnNetworkSpawn()
+        {
+            base.OnNetworkSpawn();
+            if (!IsClient)
+            {
+                enabled = false;
+                return;
+            }
+            
+            m_mainCamera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
+            m_virtualCam = m_mainCamera.GetComponent<CinemachineBrain>().ActiveVirtualCamera.VirtualCameraGameObject.GetComponent<CinemachineVirtualCamera>();
+            m_virtualCam.LookAt = lookAt;
+            m_virtualCam.Follow = lookAt;
+        }
+
         void Update()
         {
             xAxis.Update(Time.deltaTime);
