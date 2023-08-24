@@ -5,9 +5,21 @@
 ## Objetivo
 Desenvolver um jogo 3D de terceira pessoa de coleta de objetos, onde os jogadores devem coletar itens que aparecem aleatoriamente na tela para aumentar sua pontuação. O jogo também deve incluir funcionalidades de interface de usuário, um sistema para salvar e carregar o melhor placar do jogador e suporte para multijogadores onde dois jogadores podem competir para obter a melhor pontuação.
 
+## Estado Atual
+- O jogador pode entrar em uma partida ou criar.
+- A movimentação e cameras do jogador estão sicronizadas.
+- Animações sicronizadas.
+- Interface para criar e entrar em partidas.
+
+## Implementaçoes Pendentes
+- Coleta de itens.
+- Object polling para reciclagem dos itens.
+- Sistema de carregamento e salvamento atraves do PlayersPrefs.
+- LeadBoard.
+
 ### Tecnologias Utilizadas
 - Unity (versão 2022.3.2f1)
-- C#
+- NetCode For GameObjects
 - Assets do Unity Asset Store (ver seção "Assets utilizados")
 
 ## Como Executar o Jogo
@@ -23,20 +35,11 @@ Desenvolver um jogo 3D de terceira pessoa de coleta de objetos, onde os jogadore
 
 2. Use as teclas de movimento para mover o personagem.
 
-3. Colete objetos que aparecem aleatoriamente na tela para aumentar sua pontuação.
+[To Do] 3. Colete objetos que aparecem aleatoriamente na tela para aumentar sua pontuação.
 
-4. O jogo pode ser jogado em modo single player ou multiplayer. Para iniciar um jogo multiplayer, siga as instruções dentro do jogo.
-
-5. O objetivo é alcançar a melhor pontuação possível antes que o cronômetro de contagem regressiva chegue a zero.
-
-## Como Salvar e Carregar o Melhor Placar
-
-O sistema de salvar e carregar o melhor placar do jogador será implementado como parte do projeto. Certifique-se de que esta funcionalidade esteja em funcionamento.
-
-## Testes Unitários e Boas Práticas
-
-- Implemente testes unitários, de preferência usando o testrunner da própria Unity.
-- Faça uso de assemblies definitions para melhorar o tempo de Build do projeto.
+4. O jogo Inicia apenas quando 2 jogadores entram na mesma partida.
+   
+[To Do]6. O objetivo é alcançar a melhor pontuação possível antes que o cronômetro de contagem regressiva chegue a zero.
 
 ## Multiplayer
 
