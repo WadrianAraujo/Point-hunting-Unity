@@ -10,11 +10,7 @@ public class PlayerScore : MonoBehaviour
     [SerializeField] private TextMeshProUGUI NameUi;
     [SerializeField] private TextMeshProUGUI ScoreUi;
 
-    public void TrackPlayer(GameObject player)
-    {
-        player.GetComponent<PlayerData>().name.OnValueChanged += OnNameChanged;
-        player.GetComponent<PlayerData>().score.OnValueChanged += OnScoreChanged;
-    }
+    
 
     private void OnScoreChanged(int previousvalue, int newvalue)
     {

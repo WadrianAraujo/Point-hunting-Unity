@@ -27,10 +27,6 @@ namespace Player
             // not all scenes have a cinemachine virtual camera so return in that's the case
             if (m_virtualCam == null) return;
             m_virtualCam.Follow = transform;
-            
-            var perlin = m_virtualCam.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>();
-            perlin.m_AmplitudeGain = amplitudeGain;
-            perlin.m_FrequencyGain = frequencyGain;
         }
     }
 }
